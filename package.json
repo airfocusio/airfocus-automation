@@ -1,0 +1,28 @@
+{
+  "name": "airfocus-automation",
+  "version": "0.1.0",
+  "workspaces": [
+    "template"
+  ],
+  "bin": {
+    "airfocus-automation": "./bin/airfocus-automation.js"
+  },
+  "scripts": {
+    "lint": "prettier . --check && tsc -p ./tsconfig.json --noEmit && tsc -p ./template/tsconfig.json --noEmit",
+    "lint-fix": "prettier . --write",
+    "start": "ts-node -T ./template/index.dev.ts",
+    "test": "vitest"
+  },
+  "license": "ISC",
+  "author": "airfocus GmbH",
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@ngrok/ngrok": "^1.3.0",
+    "dotenv": "^16.4.5",
+    "prettier": "^3.3.0",
+    "ts-node": "^10.9.2",
+    "vitest": "^1.6.0"
+  }
+}
