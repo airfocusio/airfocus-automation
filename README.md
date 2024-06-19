@@ -13,7 +13,7 @@ Kickstart your own [airfocus](http://airfocus.com/) automation handler with ease
     # add correct values to .env file
     npm install
     ```
-* Implement your custom automation logic. You can find some examples [here](src/examples/).
+* Implement your custom automation logic. You can find some examples [here](template/src/examples/).
 * Test locally by running (using [ngrok](https://ngrok.com/) to make your local instance available from the public internet):
     ```bash
     npm start
@@ -22,4 +22,4 @@ Kickstart your own [airfocus](http://airfocus.com/) automation handler with ease
     ```bash
     npm run build-docker
     ```
-* Deploy and run on your server. Make sure that you make it reachabile via HTTPS with a valid certificate, for example by using a reverse proxy and Let's encrypt.
+* Deploy and run on your server. Make sure that you make it reachable via HTTPS with a valid certificate, for example by using a reverse proxy and Let's encrypt.
