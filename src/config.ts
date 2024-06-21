@@ -12,7 +12,7 @@ export function createConfig(override?: Partial<Config>): Config {
       override?.selfAuthorization || readString("SELF_AUTHORIZATION"),
     airfocusBaseUrl:
       override?.airfocusBaseUrl ||
-      readString("AIRFOCUS_BASE_URL", "https://app.airfocus.com"),
+      readString("AIRFOCUS_BASE_URL", "https://api.airfocus.com"),
     airfocusApiKey: override?.airfocusApiKey || readString("AIRFOCUS_API_KEY"),
   };
 }

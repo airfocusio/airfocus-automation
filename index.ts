@@ -26,19 +26,24 @@ export async function renderTemplate(options: RenderTemplateOpts) {
   await fs.mkdir(target);
 
   const source = path.resolve(__dirname, "template");
-  const sourceNames = await fs.readdir(source, { recursive: true })
+  const sourceNames = await fs.readdir(source, { recursive: true });
   const files = [
     {
-      source: path.join(__dirname, 'README.md'),
-      target: path.join(target, 'README.md'),
+      source: path.join(__dirname, "README.md"),
+      target: path.join(target, "README.md"),
     },
-    ...sourceNames.filter(sourceName => !ignores.some((ignore) => sourceName.startsWith(ignore))).map(sourceName => {
-      return {
-        source: path.join(source, sourceName),
-        target: path.join(target, sourceName),
-      }
-    })
-  ]
+    ...sourceNames
+      .filter(
+        (sourceName) =>
+          !ignores.some((ignore) => sourceName.startsWith(ignore)),
+      )
+      .map((sourceName) => {
+        return {
+          source: path.join(source, sourceName),
+          target: path.join(target, sourceName),
+        };
+      }),
+  ];
 
   for (let i = 0; i < files.length; i++) {
     const { source: sourceFile, target: targetFile } = files[i];
@@ -49,11 +54,7 @@ export async function renderTemplate(options: RenderTemplateOpts) {
     } else if (stat.isFile()) {
       const template = await fs.readFile(sourceFile, "utf-8");
       const rendered = Object.keys(replacements).reduce(
-        (str, key) =>
-          str.replace(
-            new RegExp("airfocus-automation-template-" + key, "g"),
-            replacements[key],
-          ),
+        (str, key) => str.replace(new RegExp(key, "g"), replacements[key]),
         template,
       );
       await fs.writeFile(targetFile, rendered, "utf-8");
