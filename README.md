@@ -4,7 +4,7 @@ Kickstart your own [airfocus](http://airfocus.com/) automation handler with ease
 
 ## Getting started
 
-* Log into your airfocus account and create an API key.
+* Log into your airfocus account and create an API key in your account settings (API keys are only available in higher tier plans).
 * Create a fresh automation handler from this template by running:
     ```bash
     npx airfocus-automation -n my-airfocus-automation
