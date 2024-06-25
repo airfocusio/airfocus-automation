@@ -23,3 +23,7 @@ Kickstart your own [airfocus](http://airfocus.com/) automation handler with ease
   npm run build-docker
   ```
 - Deploy and run on your server. Make sure that you make it reachable via HTTPS with a valid certificate, for example by using a reverse proxy and Let's encrypt.
+
+## Disclaimer
+
+This repository is only intended as template and comes with no support.
