@@ -7,15 +7,74 @@ import deepEqual from "deep-equal";
 
 const supportedFieldTypeIds = ["text", "number", "select"];
 
-const emptyValues = [
-  undefined,
-  // empty text field
-  { text: "" },
-  // empty number field
-  { number: undefined },
-  // empty select field
-  { selection: [] },
-];
+function evaluate(field: any, prevValue: any, nextValue: any): any | undefined {
+  switch (field.typeId) {
+    case "text": {
+      // text is only copied, if the target value is empty
+      const prevNormalized = {
+        text: typeof prevValue?.text === "string" ? prevValue.text : "",
+      };
+      const nextNormalized = {
+        text: typeof nextValue?.text === "string" ? nextValue.text : "",
+      };
+      return deepEqual(prevNormalized, { text: "" }) &&
+        !deepEqual(nextNormalized, prevNormalized)
+        ? nextNormalized
+        : undefined;
+    }
+    case "number": {
+      // text is only copied, if the target value is empty
+      const prevNormalized = {
+        number:
+          typeof prevValue?.number === "number" ? prevValue.number : undefined,
+      };
+      const nextNormalized = {
+        number:
+          typeof nextValue?.number === "number" ? nextValue.number : undefined,
+      };
+      return deepEqual(prevNormalized, { number: undefined }) &&
+        !deepEqual(nextNormalized, prevNormalized)
+        ? nextNormalized
+        : undefined;
+    }
+    case "select": {
+      const prevNormalized = {
+        selection: typeof Array.isArray(prevValue?.selection)
+          ? prevValue.selection
+          : [],
+      };
+      if (!field.settings.multi) {
+        // single-select is only copied, if the target value is empty
+        const nextNormalized = {
+          selection: typeof Array.isArray(nextValue?.selection)
+            ? nextValue.selection
+            : [],
+        };
+        return deepEqual(prevValue, { selection: [] }) &&
+          !deepEqual(nextNormalized, prevNormalized)
+          ? nextNormalized
+          : undefined;
+      } else {
+        // multi-select is merged with the target value
+        const nextNormalized = {
+          selection: [
+            ...new Set([
+              ...prevNormalized.selection,
+              ...(typeof Array.isArray(nextValue?.selection)
+                ? nextValue.selection
+                : []),
+            ]),
+          ],
+        };
+        return !deepEqual(nextNormalized, prevNormalized)
+          ? nextNormalized
+          : undefined;
+      }
+    }
+    default:
+      return undefined;
+  }
+}
 
 export interface InheritTeamFieldValuesHandlerOpts {
   workspaceId: string;
@@ -29,7 +88,7 @@ export default class InheritTeamFieldValuesHandler implements Handler {
   private constructor(
     public id: string,
     private client: Client,
-    private fieldIds: string[],
+    private fields: any[],
     private opts: InheritTeamFieldValuesHandlerOpts,
   ) {}
 
@@ -43,13 +102,12 @@ export default class InheritTeamFieldValuesHandler implements Handler {
     const supportedTeamFieldIds = Object.keys(res.data._embedded.fields)
       .map((fieldId) => res.data._embedded.fields[fieldId])
       .filter((field: any) => supportedFieldTypeIds.includes(field.typeId))
-      .filter((field: any) => field.isTeamField)
-      .map((field: any) => field.id);
+      .filter((field: any) => field.isTeamField);
     const events = [
       { type: "itemCreated" },
-      ...supportedTeamFieldIds.map((fieldId) => ({
+      ...supportedTeamFieldIds.map((field) => ({
         type: "itemFieldUpdated",
-        fieldId,
+        fieldId: field.id,
       })),
       { type: "itemRelationChanged" },
     ];
@@ -107,19 +165,18 @@ export default class InheritTeamFieldValuesHandler implements Handler {
     await promiseSequential(
       res.data._embedded.children.map((child: any) => async () => {
         const fieldsToUpdate = Object.keys(child.item.fields)
-          .filter((fieldId) => this.fieldIds.includes(fieldId))
-          .filter((fieldId) => {
+          .filter((fieldId) => this.fields.map((f) => f.id).includes(fieldId))
+          .flatMap((fieldId) => {
+            const field = this.fields.find((f) => f.id === fieldId);
             const childValue = child.item.fields[fieldId];
-            return emptyValues.some((emptyValue) =>
-              deepEqual(emptyValue, childValue),
-            );
-          })
-          .filter((fieldId) => {
             const parentValue = res.data.fields[fieldId];
-            const childValue = child.item.fields[fieldId];
-            return !deepEqual(parentValue, childValue);
-          })
-          .map((fieldId) => [fieldId, res.data.fields[fieldId]] as const);
+            const nextValue = evaluate(field, childValue, parentValue);
+            if (nextValue !== undefined) {
+              return [[fieldId, nextValue]] as const;
+            } else {
+              return [];
+            }
+          });
 
         if (fieldsToUpdate.length > 0) {
           console.log(

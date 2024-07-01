@@ -3,7 +3,6 @@ import { Client } from "../client";
 import { Config } from "../config";
 import { createOrUpdateWebhookIntegration } from "../webhook";
 import { promiseSequential } from "../utils";
-import deepEqual from "deep-equal";
 
 const insightsFieldTypeId = "insights";
 const closedStatusCategory = "closed";
